@@ -11,6 +11,7 @@ load('K_M_matrix.mat');
 % load('external_force_time.mat');
 a=0.5;%x方向长度
 b=1.2;%y方向长度
+
 %荷载参数%%%
 Cx=50;%荷载速度
 tr=0.003;%荷载上升时间
@@ -21,6 +22,7 @@ ld=Cx*td;%荷载宽度
 lc=Cx*tc;%荷载作用宽度
 Pm=750000;%峰值荷载大小
 Pl=75000;%低压荷载大小
+
 %%
 % time step
 dt=1e-5;        %计算时间步长
@@ -245,7 +247,7 @@ nf=n*n;
 na_t=Ya_t(1:nf,:);               %free node cooridnate
 na_d_t=Ya_t(nf+1:end,:);         %free node velocity
 %% save data
-save('dynamics_result_ode23_0.1s.mat','na_t','na_d_t','out_tspan');
+save(['dynamics_result_ode23_0.1s_',num2str(1e3*a),'_',num2str(1e3*b),'.mat'],'na_t','na_d_t','out_tspan');
 %% calculate displacement
 Z_disp_x_0=zeros(31,numel(out_tspan));           % displacement in x=0
 Z_disp_y_0=zeros(31,numel(out_tspan));           % displacement in y=0
@@ -270,6 +272,11 @@ grid on
 xlabel('时间(s)');
 ylabel('位移(m)');
 title('中心点位移时程曲线');
+
+fprintf(['maximum displacement is: ',num2str(1e3*max(Z_disp_x_0(16,:))),'mm'])
+
+return
+
 
 
 % X=0 displcement
