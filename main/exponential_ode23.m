@@ -9,8 +9,8 @@ close all;
 %% load K M n
 load('K_M_matrix.mat');
 % load('external_force_time.mat');
-a=0.5;%x方向长度
-b=1.2;%y方向长度
+a=2.4;%x方向长度
+b=0.4;%y方向长度
 
 %荷载参数%%%
 Cx=50;%荷载速度
