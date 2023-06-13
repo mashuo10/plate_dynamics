@@ -36,11 +36,13 @@ G=E/(2*(1+v));
 D=E*h^3/(12*(1-v^2));  
 r=a/b;
 
-% Ix=1/12*t1x*Hx^3+Hx*t1x*(Hx/2+h/2)^2+1/12*Bx*t2x^3+t2x*Bx*(Hx+t2x/2+h/2)^2;
-Ix=1/12*t1x*Hx^3+1/12*Bx*t2x^3+t2x*Bx*(Hx/2+t2x/2)^2;
+Ix=1/12*t1x*Hx^3+Hx*t1x*(Hx/2+h/2)^2+1/12*Bx*t2x^3+t2x*Bx*(Hx+t2x/2+h/2)^2;%center of top plates
+% Ix=1/12*t1x*Hx^3+1/12*Bx*t2x^3+t2x*Bx*(Hx/2+t2x/2)^2;     %center of vertical plate
+
 
 Ix1=1/12*(Hx*t1x^3+t2x*Bx^3);
-Jx=Ix+Ix1;  
+% Jx=Ix+Ix1;  
+Jx=1/3*(Hx*t1x^3+Bx*t2x^3);
 Ax=t1x*Hx+t2x*Bx;
 yk=yk*2/b;
 
