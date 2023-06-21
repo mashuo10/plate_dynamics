@@ -9,13 +9,13 @@ close all;
 %% load K M n
 load('K_M_matrix.mat');
 % load('external_force_time.mat');
-a=2.4;%x方向长度
-b=1.6;%y方向长度
+a=0.9;%x方向长度
+b=1.2;%y方向长度
 
 %荷载参数%%%
 Cx=50;%荷载速度
 tr=0.003;%荷载上升时间
-td=0.0015;%荷载衰减时间
+td=0.006;%荷载衰减时间
 tc=tr+td;%荷载作用时间
 lr=Cx*tr;%荷载上升宽度
 ld=Cx*td;%荷载宽度
