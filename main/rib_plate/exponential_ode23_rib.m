@@ -9,8 +9,8 @@ close all;
 %% load K M n
 load('K_M_matrix.mat');
 % load('external_force_time.mat');
-a=0.9;%x方向长度
-b=1.2;%y方向长度
+a=2.4;%x方向长度
+b=1.6;%y方向长度
 
 %荷载参数%%%
 Cx=50;%荷载速度
@@ -87,6 +87,44 @@ for k=1:num
 end
 end
 %}
+%% static analysis
+
+K_num_mod=K_num*mod_K;
+
+M_num_mod=M_num*mod_M;
+
+%%  calculate the displacement in evenly distributed load
+Int_x=integral(matlabFunction(-Pm*tp1),-a/2,a/2,'ArrayValued',true);
+
+PA_junbu=Int_x*Int_y';      % load factor in evenly distributed load
+Z_disp_vect=K_num_mod\reshape(PA_junbu',n*n,1);
+
+Z_disp_junbu=zeros(31,31);
+    for i=1:n
+        for j=1:n
+           Z_disp_junbu=Z_disp_junbu+W_base_num{i,j}*Z_disp_vect((i-1)*n+j);%displacement of whole plate
+            
+        end
+    end
+
+figure
+ [X,Y] = meshgrid(linspace(-a/2,a/2,31),linspace(-b/2,b/2,31));
+    surf(X,Y,Z_disp_junbu)
+    xlabel('X(m)');
+    ylabel('Y(m)');
+    zlabel('Z坐标(m)');
+    title('均布荷载位移');
+%     zlim([0,1.5*Pm]);
+fprintf(['maximum displacement in middle of plate is: ',num2str(1e3*min(Z_disp_junbu(:))),'mm\n']);
+%maximum displacement in middle of beam 
+dis_beam_mid_xx=D_beam_vec1'*Z_disp_vect;
+fprintf(['maximum displacement in middle of beam is: ',num2str(1e3*dis_beam_mid_xx),'mm\n']);
+
+%% stress calculation
+stress_plt_mid_xx=S_plt_mid_vec1'*Z_disp_vect;
+stress_beam_xx=S_beam_vec1'*Z_disp_vect;
+fprintf(['maximum xx stress in middle of plate is: ',num2str(1e-6*stress_plt_mid_xx),'MPa\n']);
+fprintf(['maximum xx stress in bottom of beam end is: ',num2str(1e-6*stress_beam_xx),'MPa\n']);
 %% calculat load coefficient PA_ij_t
 dt_load=1e-4;                   % 每隔1e-4s算一次广义荷载
 num_load=tf/dt_load;               % 
@@ -168,36 +206,7 @@ end
 %}
 
 
-%% static analysis
 
-K_num_mod=K_num*mod_K;
-
-M_num_mod=M_num*mod_M;
-
-%%  calculate the displacement in evenly distributed load
-Int_x=integral(matlabFunction(Pm*tp1),-a/2,a/2,'ArrayValued',true);
-
-PA_junbu=Int_x*Int_y';      % load factor in evenly distributed load
-Z_disp_vect=K_num_mod\reshape(PA_junbu',n*n,1);
-
-Z_disp_junbu=zeros(31,31);
-    for i=1:n
-        for j=1:n
-           Z_disp_junbu=Z_disp_junbu+W_base_num{i,j}*Z_disp_vect((i-1)*n+j);%displacement of whole plate
-            
-        end
-    end
-
-figure
- [X,Y] = meshgrid(linspace(-a/2,a/2,31),linspace(-b/2,b/2,31));
-    surf(X,Y,Z_disp_junbu)
-    xlabel('X(m)');
-    ylabel('Y(m)');
-    zlabel('Z坐标(m)');
-    title('均布荷载位移');
-%     zlim([0,1.5*Pm]);
-
-max(Z_disp_junbu(:))
 
 
 
@@ -247,7 +256,7 @@ nf=n*n;
 na_t=Ya_t(1:nf,:);               %free node cooridnate
 na_d_t=Ya_t(nf+1:end,:);         %free node velocity
 %% save data
-save(['dynamics_result_ode23_0.1s_',num2str(1e3*a),'_',num2str(1e3*b),'.mat'],'na_t','na_d_t','out_tspan');
+save(['dynamics_result_ode23_0.1s_',num2str(1e3*a),'_',num2str(1e3*b),'X','.mat'],'na_t','na_d_t','out_tspan');
 %% calculate displacement
 Z_disp_x_0=zeros(31,numel(out_tspan));           % displacement in x=0
 Z_disp_y_0=zeros(31,numel(out_tspan));           % displacement in y=0
@@ -273,8 +282,39 @@ xlabel('时间(s)');
 ylabel('位移(m)');
 title('中心点位移时程曲线');
 
-fprintf(['maximum displacement is: ',num2str(1e3*max(Z_disp_x_0(16,:))),'mm'])
+fprintf(['maximum displacement is: ',num2str(1e3*max(Z_disp_x_0(16,:))),'mm']);
 
+
+%%  plot displacement in middle of beam 
+dis_beam_mid_xx_dyn=D_beam_vec1'*na_t;
+fprintf(['maximum displacement in middle of beam is: ',num2str(1e3*max(abs(dis_beam_mid_xx_dyn))),'mm\n']);
+figure
+plot(out_tspan,dis_beam_mid_xx_dyn,'LineWidth',1.5);
+grid on
+xlabel('时间(s)');
+ylabel('位移(m)');
+title('梁中点位移时程曲线');
+
+fprintf(['最大梁中点位移: ',num2str(1e3*max(Z_disp_x_0(16,:))),'mm']);
+%% maximum xx stress in middle of plate
+stress_plt_mid_xx_dyn=S_plt_mid_vec1'*na_t;
+fprintf(['maximum xx stress in middle of plate is: ',num2str(1e-6*max(abs(stress_plt_mid_xx_dyn))),'MPa\n']);
+
+figure
+plot(out_tspan,stress_plt_mid_xx_dyn,'LineWidth',1.5);
+grid on
+xlabel('时间(s)');
+ylabel('位移(m)');
+title('板中心最大应力');
+%% maximum xx stress in bottom of beam end
+stress_beam_xx_dyn=S_beam_vec1'*na_t;
+fprintf(['maximum xx stress in bottom of beam end is: ',num2str(1e-6*max(abs(stress_beam_xx_dyn))),'MPa\n']);
+figure
+plot(out_tspan,stress_beam_xx_dyn,'LineWidth',1.5);
+grid on
+xlabel('时间(s)');
+ylabel('位移(m)');
+title('梁端底部应力');
 return
 
 

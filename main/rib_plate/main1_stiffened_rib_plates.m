@@ -48,7 +48,8 @@ yk=yk*2/b;
 
 Iy=1/12*t1y*Hy^3+Hy*t1y*(Hy/2+h/2)^2+1/12*By*t2y^3+t2y*By*(Hy+t2y/2+h/2)^2;
 Iy1=1/12*(Hy*t1y^3+t2y*By^3);
-Jy=Iy+Iy1;  
+% Jy=Iy+Iy1;  
+Jy=1/3*(Hy*t1y^3+By*t2y^3);
 Ay=t1y*Hy+t2y*By;
 xl=xl*2/a;
 
@@ -391,6 +392,35 @@ for i=1:l;
     end
 end
 
+%% stress matrix  sigma_xx
+%stress matrix/vector of plate(middle point)---xx
+x_loc=0.5;y_loc=0.5;
+S_plt_mid_matrix1=-E*(-h/2)/(1-v^2)*((2/a)^2*eval(subs(diff(tp1,x,2),x,x_loc)*subs(diff(py1,y,0),y,y_loc))-...
+    v*(2/b)^2*eval(subs(diff(tp1,x,0),x,x_loc)*subs(diff(py1,y,2),y,y_loc)));
+S_plt_mid_vec1=reshape(S_plt_mid_matrix1',n*n,1);
+% stress matrix/vector of beam(bottom of end point)--xx
+x_loc=1;y_loc=max(yk);
+S_beam_matrix1=-E*-(h/2+Hx+t2x)/(1-v^2)*((2/a)^2*eval(subs(diff(tp1,x,2),x,x_loc)*subs(diff(py1,y,0),y,y_loc)));
+S_beam_vec1=reshape(S_beam_matrix1',n*n,1);
+
+% %stress matrix/vector of plate---yy
+% x_loc=0.5;y_loc=0.5;
+% S_plt_mid_matrix2=-E*h/2/(1-v^2)*((2/b)^2*eval(subs(diff(tp1,x,0),x,x_loc)*subs(diff(py1,y,2),y,y_loc))+...
+%     v*(2/a)^2*eval(subs(diff(tp1,x,2),x,x_loc)*subs(diff(py1,y,0),y,y_loc)));
+% S_plt_mid_vec2=reshape(S_plt_mid_matrix2',n*n,1);
+% % stress matrix/vector of beam--yy
+% x_loc=xl;y_loc=1;
+% S_beam_matrix2=-E*(h/2+Hy+t2y)/(1-v^2)*(2/b)^2*eval(subs(diff(tp1,x,0),x,x_loc)*subs(diff(py1,y,2),y,y_loc));
+% S_beam_vec2=reshape(S_beam_matrix2',n*n,1);
+
+%% displacement matrix middle of beam
+x_loc=0.5;y_loc=max(yk);
+D_beam_matrix1=eval(subs(diff(tp1,x,0),x,x_loc)*subs(diff(py1,y,0),y,y_loc));
+D_beam_vec1=reshape(D_beam_matrix1',n*n,1);
+
+
+
+%% stiffness and mass matrix
 K=Q1+(r^4)*Q2+r^2*v*(Q3+Q4)+2*r^2*(1-v)*Q5+2/b/D*(E*Ix*Q7+r^2*G*Jx*Q8+r^3*E*Iy*Q9+r*G*Jy*Q10);
 M=Q6+2/b/h*(Ax*Q11+1/r*Ay*Q12);
 
@@ -491,7 +521,7 @@ end
 K_num=K;
 M_num=M;
 save (['data','.mat']);%保存所有数据
-save (['K_M_matrix','.mat'],'K_num','M_num','n','mod_K','mod_M','W_base','W_base_num');%保存刚度矩阵、质量矩阵、阶数
+save (['K_M_matrix','.mat'],'K_num','M_num','n','mod_K','mod_M','W_base','W_base_num','S_plt_mid_vec1','S_beam_vec1','D_beam_vec1');%保存刚度矩阵、质量矩阵、阶数
 
 
 
