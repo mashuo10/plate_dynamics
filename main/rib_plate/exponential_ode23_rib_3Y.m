@@ -4,8 +4,6 @@ clc;
 clear all;
 close all;
 
-
-
 %% load K M n
 load('K_M_matrix.mat');
 % load('external_force_time.mat');
@@ -52,8 +50,8 @@ for i=1:n;
 end
 tpy1 = py1.';
 
-Int_y=integral(matlabFunction(tpy1),-b/2,b/2,'ArrayValued',true);   % integration of tpy1
-
+% Int_y=integral(matlabFunction(tpy1),-b/2,b/2,'ArrayValued',true);   % integration of tpy1
+Int_x=integral(matlabFunction(tp1),-a/2,a/2,'ArrayValued',true);   % integration of tp1
 
 
 % may delete this part
@@ -87,6 +85,45 @@ for k=1:num
 end
 end
 %}
+%% static analysis
+
+K_num_mod=K_num*mod_K;
+
+M_num_mod=M_num*mod_M;
+
+%%  calculate the displacement in evenly distributed load
+Int_y=integral(matlabFunction(-Pm*tpy1),-b/2,b/2,'ArrayValued',true);
+
+PA_junbu=Int_x*Int_y';      % load factor in evenly distributed load
+Z_disp_vect=K_num_mod\reshape(PA_junbu',n*n,1);
+
+Z_disp_junbu=zeros(31,31);
+    for i=1:n
+        for j=1:n
+           Z_disp_junbu=Z_disp_junbu+W_base_num{i,j}*Z_disp_vect((i-1)*n+j);%displacement of whole plate
+            
+        end
+    end
+
+figure
+ [X,Y] = meshgrid(linspace(-a/2,a/2,31),linspace(-b/2,b/2,31));
+    surf(X,Y,Z_disp_junbu)
+    xlabel('X(m)');
+    ylabel('Y(m)');
+    zlabel('Z坐标(m)');
+    title('均布荷载位移');
+%     zlim([0,1.5*Pm]);
+fprintf(['板中点最大静位移: ',num2str(1e3*min(Z_disp_junbu(:))),'mm\n']);
+%maximum displacement in middle of beam 
+dis_beam_mid_xx=D_beam_vec1'*Z_disp_vect;
+fprintf(['梁中点最大静位移: ',num2str(1e3*dis_beam_mid_xx),'mm\n']);
+
+%% stress calculation
+stress_plt_mid_xx=S_plt_mid_vec1'*Z_disp_vect;
+stress_beam_xx=S_beam_vec1'*Z_disp_vect;
+fprintf(['板中点应力（底部）xx: ',num2str(1e-6*stress_plt_mid_xx),'MPa\n']);
+fprintf(['梁端底部应力xx: ',num2str(1e-6*stress_beam_xx),'MPa\n']);
+
 %% calculat load coefficient PA_ij_t
 dt_load=1e-4;                   % 每隔1e-4s算一次广义荷载
 num_load=tf/dt_load;               % 
@@ -94,8 +131,8 @@ PA_t_num=zeros(n,n,num_load);    % PA_ij with different time in reduced number
 for k=1:num_load
 %     t=tspan(k*10);                         % corresponding time
     t=k*dt_load;
-    P_xyt_line=(Pm*(Cx*t-x-a/2)/lr);                     %linear part
-    P_xyt_exp=(Pl+(Pm-Pl)*exp((x+a/2-Cx*t+lr)/ld));     %exponential part
+    P_xyt_line=-(Pm*(Cx*t-y-b/2)/lr);                     %linear part
+    P_xyt_exp=-(Pl+(Pm-Pl)*exp((y+b/2-Cx*t+lr)/ld));     %exponential part
     if mod(k,1e2)==0
     fprintf('k =%d\n',k);
     end
@@ -112,18 +149,18 @@ for k=1:num_load
 
         % integration twice based on linear independant of X Y
         % deformation
-        Int_x=integral(matlabFunction(P_xyt_line*tp1),-a/2,Cx*t-a/2,'ArrayValued',true);
-    elseif t>tr&& t<=a/Cx
-        Int_x2=integral(matlabFunction(P_xyt_exp*tp1),-a/2,Cx*t-lr-a/2,'ArrayValued',true);%exponential part
-        Int_x1=integral(matlabFunction(P_xyt_line*tp1),Cx*t-lr-a/2,Cx*t-a/2,'ArrayValued',true);%linear part
-        Int_x=Int_x1+Int_x2;
-    elseif t>a/Cx&& t<=a/Cx+tr
-        Int_x2=integral(matlabFunction(P_xyt_exp*tp1),-a/2,Cx*t-lr-a/2,'ArrayValued',true); %exponential part
-        Int_x1=integral(matlabFunction(P_xyt_line*tp1),Cx*t-lr-a/2,a/2,'ArrayValued',true);%linear part
-        Int_x=Int_x1+Int_x2;
-    elseif t>a/Cx+tr
-        Int_x2=integral(matlabFunction(P_xyt_exp*tp1),-a/2,a/2,'ArrayValued',true);%exponential part
-        Int_x=Int_x2;
+        Int_y=integral(matlabFunction(P_xyt_line*tpy1),-b/2,Cx*t-b/2,'ArrayValued',true);
+    elseif t>tr&& t<=b/Cx
+        Int_y2=integral(matlabFunction(P_xyt_exp*tpy1),-b/2,Cx*t-lr-b/2,'ArrayValued',true);%exponential part
+        Int_y1=integral(matlabFunction(P_xyt_line*tpy1),Cx*t-lr-b/2,Cx*t-b/2,'ArrayValued',true);%linear part
+        Int_y=Int_y1+Int_y2;
+    elseif t>b/Cx&& t<=b/Cx+tr
+        Int_y2=integral(matlabFunction(P_xyt_exp*tpy1),-b/2,Cx*t-lr-b/2,'ArrayValued',true); %exponential part
+        Int_y1=integral(matlabFunction(P_xyt_line*tpy1),Cx*t-lr-b/2,b/2,'ArrayValued',true);%linear part
+        Int_y=Int_y1+Int_y2;
+    elseif t>b/Cx+tr
+        Int_y2=integral(matlabFunction(P_xyt_exp*tpy1),-b/2,b/2,'ArrayValued',true);%exponential part
+        Int_y=Int_y2;
     end
     PA_t_num(:,:,k)=Int_x*Int_y';
 end
@@ -168,36 +205,7 @@ end
 %}
 
 
-%% static analysis
 
-K_num_mod=K_num*mod_K;
-
-M_num_mod=M_num*mod_M;
-
-%%  calculate the displacement in evenly distributed load
-Int_x=integral(matlabFunction(Pm*tp1),-a/2,a/2,'ArrayValued',true);
-
-PA_junbu=Int_x*Int_y';      % load factor in evenly distributed load
-Z_disp_vect=K_num_mod\reshape(PA_junbu',n*n,1);
-
-Z_disp_junbu=zeros(31,31);
-    for i=1:n
-        for j=1:n
-           Z_disp_junbu=Z_disp_junbu+W_base_num{i,j}*Z_disp_vect((i-1)*n+j);%displacement of whole plate
-            
-        end
-    end
-
-figure
- [X,Y] = meshgrid(linspace(-a/2,a/2,31),linspace(-b/2,b/2,31));
-    surf(X,Y,Z_disp_junbu)
-    xlabel('X(m)');
-    ylabel('Y(m)');
-    zlabel('Z坐标(m)');
-    title('均布荷载位移');
-%     zlim([0,1.5*Pm]);
-
-max(Z_disp_junbu(:))
 
 
 
@@ -273,8 +281,39 @@ xlabel('时间(s)');
 ylabel('位移(m)');
 title('中心点位移时程曲线');
 
-fprintf(['maximum displacement is: ',num2str(1e3*max(Z_disp_x_0(16,:))),'mm'])
+fprintf(['板中心点最大竖向位移: ',num2str(1e3*max(abs(Z_disp_x_0(16,:)))),'mm\n']);
 
+
+%%  plot displacement in middle of beam 
+dis_beam_mid_xx_dyn=D_beam_vec1'*na_t;
+fprintf(['梁中点最大竖向位移: ',num2str(1e3*max(abs(dis_beam_mid_xx_dyn))),'mm\n']);
+figure
+plot(out_tspan,dis_beam_mid_xx_dyn,'LineWidth',1.5);
+grid on
+xlabel('时间(s)');
+ylabel('位移(m)');
+title('梁中点位移时程曲线');
+
+
+%% maximum xx stress in middle of plate
+stress_plt_mid_xx_dyn=S_plt_mid_vec1'*na_t;
+fprintf(['板中点底部最大应力: ',num2str(1e-6*max(abs(stress_plt_mid_xx_dyn))),'MPa\n']);
+
+figure
+plot(out_tspan,1e-6*stress_plt_mid_xx_dyn,'LineWidth',1.5);
+grid on
+xlabel('时间(s)');
+ylabel('应力(MPa)');
+title('板中心最大应力');
+%% maximum xx stress in bottom of beam end
+stress_beam_xx_dyn=S_beam_vec1'*na_t;
+fprintf(['梁端底部最大应力: ',num2str(1e-6*max(abs(stress_beam_xx_dyn))),'MPa\n']);
+figure
+plot(out_tspan,1e-6*stress_beam_xx_dyn,'LineWidth',1.5);
+grid on
+xlabel('时间(s)');
+ylabel('应力(MPa)');
+title('梁端底部应力');
 return
 
 
