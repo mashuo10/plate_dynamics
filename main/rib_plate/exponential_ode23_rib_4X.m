@@ -125,7 +125,7 @@ fprintf(['板中点应力（底部）xx: ',num2str(1e-6*stress_plt_mid_xx),'MPa\n']);
 fprintf(['梁端底部应力xx: ',num2str(1e-6*stress_beam_xx),'MPa\n']);
 %% maximum xx stress in edge of plate
 stress_plt_edge_xx_dyn=S_plt_vec2'*Z_disp_vect;
-fprintf(['板边缘底部最大应力: ',num2str(1e-6*max(abs(stress_plt_edge_xx_dyn))),'MPa\n']);
+fprintf(['板边缘底部最大应力: ',num2str(1e-6*max(stress_plt_edge_xx_dyn)),'MPa\n']);
 
 %% calculat load coefficient PA_ij_t
 dt_load=1e-4;                   % 每隔1e-4s算一次广义荷载
