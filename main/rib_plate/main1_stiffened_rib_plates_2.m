@@ -403,9 +403,13 @@ x_loc=0.5;y_loc=0.5;
 S_plt_mid_matrix1=-E*(-h/2)/(1-v^2)*((2/a)^2*eval(subs(diff(tp1,x,2),x,x_loc)*subs(diff(py1,y,0),y,y_loc))-...
     v*(2/b)^2*eval(subs(diff(tp1,x,0),x,x_loc)*subs(diff(py1,y,2),y,y_loc)));
 S_plt_mid_vec1=reshape(S_plt_mid_matrix1',n*n,1);
-% stress matrix/vector of plate(bottom of end point)--xx
-x_loc=1;y_loc=0.5;
-S_plt_matrix2=-E*-(h/2)/(1-v^2)*((2/a)^2*eval(subs(diff(tp1,x,2),x,x_loc)*subs(diff(py1,y,0),y,y_loc)));
+% % stress matrix/vector of plate(bottom of end point)--xx
+% x_loc=1;y_loc=0.5;
+% S_plt_matrix2=-E*-(h/2)/(1-v^2)*((2/a)^2*eval(subs(diff(tp1,x,2),x,x_loc)*subs(diff(py1,y,0),y,y_loc)));
+% S_plt_vec2=reshape(S_plt_matrix2',n*n,1);
+% stress matrix/vector of plate(bottom of end point)--yy
+x_loc=0.5;y_loc=min(yk)/b;
+S_plt_matrix2=-E*-(h/2)/(1-v^2)*((2/a)^2*eval(subs(diff(tp1,x,0),x,x_loc)*subs(diff(py1,y,2),y,y_loc)));
 S_plt_vec2=reshape(S_plt_matrix2',n*n,1);
 % stress matrix/vector of beam(bottom of end point)--xx
 x_loc=1;y_loc=max(yk);
