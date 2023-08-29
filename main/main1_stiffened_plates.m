@@ -11,9 +11,9 @@ syms x y real
 %阶数输入
 n=15;
 %板参数输入
-a=2.4;%x方向长度
-b=0.4;%y方向长度
-h=0.010;%板厚
+a=1.2;%x方向长度
+b=0.5;%y方向长度
+h=0.015;%板厚
 E=2.1*10^11;%弹性模量
 v=0.3;%泊松比
 P=7850;%材料密度
@@ -328,7 +328,18 @@ for i=1:l;
         Q12=Q12+A12;
     end
 end
-
+%% stress matrix  sigma_xx
+%stress matrix/vector of plate(middle point)---xx
+x_loc=0.5;y_loc=0.5;
+S_plt_mid_matrix1=-E*(-h/2)/(1-v^2)*((2/a)^2*eval(subs(diff(tp1,x,2),x,x_loc)*subs(diff(py1,y,0),y,y_loc))-...
+    v*(2/b)^2*eval(subs(diff(tp1,x,0),x,x_loc)*subs(diff(py1,y,2),y,y_loc)));
+S_plt_mid_vec1=reshape(S_plt_mid_matrix1',n*n,1);
+% stress matrix/vector of plate(bottom of end point)--yy
+x_loc=0;y_loc=-1;
+S_plt_matrix2=-E*(-h/2)/(1-v^2)*((2/b)^2*eval(subs(diff(tp1,x,0),x,x_loc)*subs(diff(py1,y,2),y,y_loc))-...
+    v*(2/a)^2*eval(subs(diff(tp1,x,2),x,x_loc)*subs(diff(py1,y,0),y,y_loc)));
+S_plt_vec2=reshape(S_plt_matrix2',n*n,1);
+%%
 K=Q1+(r^4)*Q2+r^2*v*(Q3+Q4)+2*r^2*(1-v)*Q5+2/b/D*(E*Ix*Q7+r^2*G*Jx*Q8+r^3*E*Iy*Q9+r*G*Jy*Q10);
 M=Q6+2/b/h*(Ax*Q11+1/r*Ay*Q12);
 
@@ -428,7 +439,7 @@ end
 K_num=K;
 M_num=M;
 save (['data','.mat']);%保存所有数据
-save (['K_M_matrix','.mat'],'K_num','M_num','n','mod_K','mod_M','W_base','W_base_num');%保存刚度矩阵、质量矩阵、阶数
+save (['K_M_matrix','.mat'],'K_num','M_num','n','mod_K','mod_M','W_base','W_base_num','S_plt_mid_vec1','S_plt_vec2');%保存刚度矩阵、质量矩阵、阶数
 
 
 

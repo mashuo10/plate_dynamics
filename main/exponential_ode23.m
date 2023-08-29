@@ -9,8 +9,8 @@ close all;
 %% load K M n
 load('K_M_matrix.mat');
 % load('external_force_time.mat');
-a=2.4;%x方向长度
-b=0.4;%y方向长度
+a=1.2;%x方向长度
+b=0.5;%y方向长度
 
 %荷载参数%%%
 Cx=50;%荷载速度
@@ -54,6 +54,40 @@ tpy1 = py1.';
 
 Int_y=integral(matlabFunction(tpy1),-b/2,b/2,'ArrayValued',true);   % integration of tpy1
 
+%% static analysis
+
+K_num_mod=K_num*mod_K;
+
+M_num_mod=M_num*mod_M;
+
+%%  calculate the displacement in evenly distributed load
+Int_x=integral(matlabFunction(Pm*tp1),-a/2,a/2,'ArrayValued',true);
+
+PA_junbu=Int_x*Int_y';      % load factor in evenly distributed load
+Z_disp_vect=K_num_mod\reshape(PA_junbu',n*n,1);
+
+Z_disp_junbu=zeros(31,31);
+    for i=1:n
+        for j=1:n
+           Z_disp_junbu=Z_disp_junbu+W_base_num{i,j}*Z_disp_vect((i-1)*n+j);%displacement of whole plate
+            
+        end
+    end
+
+figure
+ [X,Y] = meshgrid(linspace(-a/2,a/2,31),linspace(-b/2,b/2,31));
+    surf(X,Y,Z_disp_junbu)
+    xlabel('X(m)');
+    ylabel('Y(m)');
+    zlabel('Z坐标(m)');
+    title('均布荷载位移');
+%     zlim([0,1.5*Pm]);
+
+max(Z_disp_junbu(:))
+
+%% maximum xx stress in edge of plate
+stress_plt_edge_xx_dyn=S_plt_vec2'*Z_disp_vect;
+fprintf(['板边缘底部最大应力: ',num2str(1e-6*max(abs(stress_plt_edge_xx_dyn))),'MPa\n']);
 
 
 % may delete this part
@@ -167,37 +201,6 @@ figure
 end
 %}
 
-
-%% static analysis
-
-K_num_mod=K_num*mod_K;
-
-M_num_mod=M_num*mod_M;
-
-%%  calculate the displacement in evenly distributed load
-Int_x=integral(matlabFunction(Pm*tp1),-a/2,a/2,'ArrayValued',true);
-
-PA_junbu=Int_x*Int_y';      % load factor in evenly distributed load
-Z_disp_vect=K_num_mod\reshape(PA_junbu',n*n,1);
-
-Z_disp_junbu=zeros(31,31);
-    for i=1:n
-        for j=1:n
-           Z_disp_junbu=Z_disp_junbu+W_base_num{i,j}*Z_disp_vect((i-1)*n+j);%displacement of whole plate
-            
-        end
-    end
-
-figure
- [X,Y] = meshgrid(linspace(-a/2,a/2,31),linspace(-b/2,b/2,31));
-    surf(X,Y,Z_disp_junbu)
-    xlabel('X(m)');
-    ylabel('Y(m)');
-    zlabel('Z坐标(m)');
-    title('均布荷载位移');
-%     zlim([0,1.5*Pm]);
-
-max(Z_disp_junbu(:))
 
 
 
